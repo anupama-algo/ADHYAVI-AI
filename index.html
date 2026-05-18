@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADHYAVI AI Customer Support App</title>
+
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #120303;
+            --panel-bg: rgba(31, 10, 10, 0.9);
+            --border-color: rgba(182, 100, 100, 0.35);
+            --text-main: #ffffff;
+            --text-muted: #f3f4f6;
+            --sos-red: #bb4141dd;
+            --sos-glow: rgba(201, 119, 11, 0.888);
+            --accent-purple: #9333ea;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        *, body, button, input, h1, h2, h3, h4, p, span, div {
+            font-family: 'Inter', sans-serif !important;
+            letter-spacing: -0.01em !important;
+            font-style: normal !important;
+        }
+
+        body {
+            background: linear-gradient(135deg, #701212 0%, #1a0202 50%, #701212 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 760px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 12px solid #000000;
+            border-radius: 40px;
+            box-shadow: 0 25px 60px -12px rgba(71, 5, 5, 0.715);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .phone-notch {
+            width: 130px;
+            height: 22px;
+            background: #000000;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 0 0 12px 12px;
+            z-index: 100;
+        }
+
+        .viewport {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #132053 0%, #070101 100%);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .app-header {
+            padding: 26px 16px 12px 16px;
+            border-bottom: 1px solid #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* Clean transparent black tint */
+            background: rgba(0, 0, 0, 0.6) !important; 
+        }
+
+        .header-title h1 { font-size: 1.1rem; font-weight: 700; color: #ffffff; }
+        .header-title p { font-size: 0.65rem; color: #10b981; font-weight: 600; }
+
+        .stealth-btn {
+            background: #374151;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .content-scroll {
+            flex-grow: 1;
+            padding: 14px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .sos-card {
+            background: rgba(129, 8, 8, 0.682);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sos-button {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: none;
+            background: var(--sos-red);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 25px var(--sos-glow);
+            position: relative;
+            outline: none;
+        }
+
+        .sos-pulse {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background: var(--sos-red);
+            opacity: 0.3;
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        .sos-text {
+            position: relative;
+            z-index: 2;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: block;
+        }
+        .sos-subtext { font-size: 0.6rem; display: block; opacity: 0.8; font-family: 'Inter', sans-serif; }
+        .sos-card p { font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
+
+        .chat-agent-banner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 4px;
+        }
+
+        .agent-status {
+            width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;
+        }
+
+        .chat-agent-banner h3 { font-size: 0.85rem; font-weight: 600; color: #ffffff; }
+
+        .chat-history {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(158, 26, 55, 0.867);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            min-height: 180px;
+        }
+
+        .msg-bubble { 
+            max-width: 85%; 
+            padding: 10px 14px; 
+            border-radius: 12px; 
+            font-size: 0.8rem; 
+            line-height: 1.4; 
+        }
+        
+        .bubble-bot { 
+            align-self: flex-start; 
+            background: #7c3aed !important; 
+            color: #ffffff !important; 
+            border: 1px solid #ffffff !important; 
+        }
+        
+        .bubble-user { 
+            align-self: flex-end; 
+            background: #7c3aed !important; 
+            color: #ffffff !important; 
+            border: 1px solid #ffffff !important; 
+        }
+
+        .app-footer {
+            padding: 12px;
+            border-top: 1px solid #ffffff;
+            background: rgba(2, 11, 36, 0.693) !important; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quick-chips-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+        .quick-chips-row::-webkit-scrollbar { display: none; }
+
+        .chip-btn {
+            white-space: nowrap; background: rgba(232, 55, 55, 0.853);
+            border: 1px solid var(--border-color); padding: 8px 12px;
+            border-radius: 20px; color: var(--text-primary); font-size: 0.7rem; cursor: pointer;
+        }
+        .chip-alert { border-color: var(--sos-red); }
+
+        .hardware-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .hw-btn {
+            background: rgba(232, 55, 55, 0.853); border: 1px solid var(--border-color);
+            padding: 10px; border-radius: 8px; color: var(--text-primary);
+            font-size: 0.7rem; text-align: center; cursor: pointer;
+        }
+        .hw-btn.active-siren { background: var(--sos-red); box-shadow: 0 0 10px var(--sos-glow); }
+
+        .input-bar {
+            display: flex; background: #000000; border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 6px 12px; align-items: center; gap: 8px;
+        }
+        .input-bar input { flex-grow: 1; background: none; border: none; outline: none; color: white; font-size: 0.8rem; }
+        .send-btn { background: var(--accent-purple); color: white; border: none; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; }
+
+        .stealth-notes-view {
+            position: absolute; top: 52px; left: 0; width: 100%; height: calc(100% - 52px);
+            background: #ffffff; color: #1f2937; padding: 24px 16px; overflow-y: auto; z-index: 99;
+        }
+        .mask-title { font-size: 1.1rem; font-weight: 700; color: #111827; margin-bottom: 4px; }
+        .mask-sub { font-size: 0.65rem; color: #6b7280; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+        .mask-text p { font-size: 0.8rem; line-height: 1.5; margin-bottom: 12px; text-align: justify; }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="phone-frame">
+        <div class="phone-notch"></div>
+        
+        <div class="viewport" id="viewportBg">
+            
+            <header class="app-header">
+                <div class="header-title">
+                    <h1 id="headerMainTitle">ADHYAVI</h1>
+                    <p id="headerSubTitle"><span class="agent-status"></span> CUSTOMER SUPPORT LIVE</p>
+                </div>
+                <button class="stealth-btn" onclick="toggleSecretStealthVeil()">👁️ <span id="toggleText">Hide App</span></button>
+            </header>
+
+            <main class="content-scroll" id="mainScrollDeck">
+                
+                <section class="sos-card">
+                    <button class="sos-button" onclick="executeSOSButtonSignal()">
+                        <span class="sos-pulse"></span>
+                        <span class="sos-text"><span class="sos-subtext">TAP TO SEND</span>SOS</span>
+                    </button>
+                    <p>Alerts police dispatch (112) and shares your live tracking location directly with your family.</p>
+                </section>
+
+                <section class="chat-container">
+                    <div class="chat-agent-banner">
+                        <span class="agent-status"></span>
+                        <h3>Shakti - AI Safety Support Assistant</h3>
+                    </div>
+
+                    <div class="chat-history" id="chatTimeline">
+                        <div class="system-encrypt-badge">🔒 End-to-end encrypted safety chat active.</div>
+                        <div class="msg-row msg-bubble bubble-bot">
+                            Hello! I am Shakti, your AI safety support assistant.
+                            If you are walking down a dark street or feel nervous, tap a quick helper button below or talk to me. 
+                            How can I support you right now?
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <footer class="app-footer" id="footerDeck">
+                <div class="quick-chips-row">
+                    <button class="chip-btn chip-alert" onclick="clickChatHelperChip(1)">🚨 I feel unsafe, track my route</button>
+                    <button class="chip-btn" onclick="clickChatHelperChip(2)">🗺️ Show me the safest, brightest path</button>
+                    <button class="chip-btn" onclick="clickChatHelperChip(3)">⚖️ Tell me my basic legal rights</button>
+                </div>
+
+                <div class="hardware-row">
+                    <button class="hw-btn" onclick="triggerDiscreetFakeCall()">📞 Fake Call Simulation</button>
+                    <button class="hw-btn" id="sirenBtnElement" onclick="triggerAudioLoudSiren()">🔊 Loud Siren Alarm</button>
+                </div>
+
+                <div class="input-bar">
+                    <span>🎙️</span>
+                    <input type="text" id="chatInputMessage" placeholder="Ask Shakti for support..." onkeypress="catchEnterSubmit(event)">
+                    <button class="send-btn" onclick="submitCustomChatText()">➔</button>
+                </div>
+            </footer>
+
+            <div class="stealth-notes-view" id="academicCloakView" style="display: none;">
+                <h2 class="mask-title">Lecture_Notes.txt</h2>
+                <p class="mask-sub">Last Updated: Just Now</p>
+                <div class="mask-text">
+                    <p><strong>Chapter 3: Indian Judicial Amendments</strong></p>
+                    <p>The legal framework structures local operations inside metropolitan sectors. Public records confirm that structural adjustments across urban city centers remain documented natively.</p>
+                    <p><strong>Section 4: Data Matrix Logs</strong></p>
+                    <p>Under safety system rules, administrative files preserve variable states cleanly across secondary platform storage blocks to bypass unexpected connectivity limitations.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+
+        let waveContext = null;
+        let alarmInterval = null;
+        let sirenIsActive = false;
+
+        function toggleSecretStealthVeil() {
+            const cloak = document.getElementById('academicCloakView');
+            const scrollArea = document.getElementById('mainScrollDeck');
+            const footerArea = document.getElementById('footerDeck');
+            const bodyBg = document.getElementById('viewportBg');
+            const textBtn = document.getElementById('toggleText');
+            const mainTitle = document.getElementById('headerMainTitle');
+            const subTitle = document.getElementById('headerSubTitle');
+
+            if (cloak.style.display === 'none') {
+                cloak.style.display = 'block';
+                scrollArea.style.display = 'none';
+                footerArea.style.display = 'none';
+                bodyBg.style.backgroundColor = '#ffffff';
+                textBtn.innerText = "Show App";
+                mainTitle.innerText = "NOTES_VIEW";
+                subTitle.style.display = 'none';
+            } else {
+                cloak.style.display = 'none';
+                scrollArea.style.display = 'flex';
+                footerArea.style.display = 'flex';
+                bodyBg.style.backgroundColor = '#090d16';
+                textBtn.innerText = "Hide App";
+                mainTitle.innerText = "ADHYAVI"; 
+                subTitle.style.display = 'block';
+                }
+        }
+
+        function executeSOSButtonSignal() {
+            insertUserBubble("🚨 [SOS SIGNAL ACTUATED]");
+            setTimeout(() => {
+                insertBotBubble("🚨 EMERGENCY RESPONSE PROTOCOL TRIGGERED: Sharing live encrypted coordinate tracking logs with Police dispatch node (112) and blasting automated security updates directly to your guardian numbers.");
+            }, 600);
+        }
+
+        function clickChatHelperChip(id) {
+            if (id === 1) {
+                insertUserBubble("🚨 I feel unsafe, track my route home");
+                setTimeout(() => {
+                    insertBotBubble("⚠️ AI Support Engine Initialized: Setting up live secure tracking channels. Location data matches your home baseline coordinates. My database confirms your surrounding local streets have active lighting. Continue moving calmly.");
+                }, 700);
+            } else if (id === 2) {
+                insertUserBubble("🗺️ Show me the safest, brightest path");
+                setTimeout(() => {
+                    insertBotBubble("🗺️ AI Route Support Calculated: Choose the Central Corridor path. My database registers high working street illumination flags and large civilian presence counts along this sector link. Avoid the dark outer loop road.");
+                }, 700);
+            } else if (id === 3) {
+                insertUserBubble("⚖️ Tell me my basic legal rights");
+                setTimeout(() => {
+                    insertBotBubble("⚖️ AI Legal Support Reference: Under current legal guidelines, you hold an absolute right to execute an immediate 'Zero-FIR' at any police location station regardless of territorial boundaries.");
+                }, 700);
+            }
+        }
+
+        function triggerDiscreetFakeCall() {
+            alert("📱 AI Support Tool: Fake Call simulation enabled. A mock incoming phone call interface with full ringtone audio will trigger on this device frame overlay in 5 seconds to help you leave any unsafe environment.");
+        }
+
+        function triggerAudioLoudSiren() {
+            const btn = document.getElementById('sirenBtnElement');
+            if (sirenIsActive) {
+                clearInterval(alarmInterval);
+                alarmInterval = null;
+                sirenIsActive = false;
+                btn.classList.remove('active-siren');
+                btn.innerText = "🔊 Loud Siren Alarm";
+            } else {
+                waveContext = new (window.AudioContext || window.webkitAudioContext)();
+                sirenIsActive = true;
+                btn.classList.add('active-siren');
+                btn.innerText = "🛑 STOP SIREN";
+                
+                alarmInterval = setInterval(() => {
+                    let osc = waveContext.createOscillator();
+                    let gain = waveContext.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(Math.random() > 0.5 ? 850 : 1350, waveContext.currentTime);
+                    osc.connect(gain);
+                    gain.connect(waveContext.destination);
+                    osc.start();
+                    osc.stop(waveContext.currentTime + 0.12);
+                }, 150);
+                alert("🔊 High-volume defense siren triggered directly from mobile speakers to immediately attract nearby help!");
+            }
+        }
+
+        function submitCustomChatText() {
+            const box = document.getElementById('chatInputMessage');
+            const msg = box.value.trim();
+            if(!msg) return;
+            insertUserBubble(msg);
+            box.value = '';
+            setTimeout(() => {
+                insertBotBubble("I am parsing this tracking request against our real-time regional support data vectors to ensure absolute path security compliance.");
+            }, 900);
+        }
+
+        function catchEnterSubmit(e) { if(e.key === 'Enter') submitCustomChatText(); }
+        function insertUserBubble(text) { makeBubbleNode(text, 'bubble-user'); }
+        function insertBotBubble(text) { makeBubbleNode(text, 'bubble-bot'); }
+
+        function makeBubbleNode(text, dynamicClass) {
+            const line = document.getElementById('chatTimeline');
+            const div = document.createElement('div');
+            div.className = `msg-row msg-bubble ${dynamicClass}`;
+            div.innerText = text;
+            line.appendChild(div);
+            document.getElementById('mainScrollDeck').scrollTop = document.getElementById('mainScrollDeck').scrollHeight;
+        }
+    </script>
+
+</body>
+</html>
